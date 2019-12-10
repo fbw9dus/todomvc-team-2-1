@@ -68,6 +68,25 @@ jQuery(function($) {
       }).init('/all');
     },
     bindEvents: function() {
+      var footerList = document.querySelector(".footer")
+      document.querySelector(".new-todo").addEventListener("keyup",this.create.bind(this)
+       );
+       document.querySelector(".toggle-all").addEventListener("change",this.toggleAll.bind(this)
+       );
+      
+      delegateEvent(footerList, 'click', ".clear-completed", this.destroyCompleted.bind(this)
+      );
+
+      var todoList = document.querySelector(".todo-list")
+      delegateEvent(todoList, 'change', ".toggle", this.toggle.bind(this) )
+      delegateEvent(todoList, 'dblclick', "label", this.editingMode.bind(this) )
+      delegateEvent(todoList, 'keyup', ".edit", this.editKeyup.bind(this) )
+      delegateEvent(todoList, 'focusout', ".edit", this.editKeyup.bind(this) )
+      delegateEvent(todoList, 'click', ".destroy", this.destroy.bind(this) )
+            
+    },
+/**
+ *  bindEvents: function() {
       $('.new-todo').on('keyup', this.create.bind(this));
       $('.toggle-all').on('change', this.toggleAll.bind(this));
       $('.footer').on(
@@ -82,7 +101,31 @@ jQuery(function($) {
         .on('focusout', '.edit', this.update.bind(this))
         .on('click', '.destroy', this.destroy.bind(this));
     },
+ */
+
+
     render: function() {
+      var todos = this.getFilteredTodos();
+      var todoLIst = document.querySelector(".todo-list")
+      todoLIst.innerHTML = this.todoTemplate(todos)
+
+     var toggleIt= document.querySelector(".main");
+     if(todos.length >0){
+       toggleIt.style.display = "block"
+     } else{
+      toggleIt.style.display = "none"
+     }
+
+    var toggleAll = document.querySelector(".toggle-all");
+    toggleAll.checked = this.getActiveTodos().length === 0
+    
+    this.renderFooter();
+
+ document.querySelector(".new-todo").focus();
+ util.store('todos-jquery', this.todos);
+    },
+/**
+ *    render: function() {
       var todos = this.getFilteredTodos();
       $('.todo-list').html(this.todoTemplate(todos));
       $('.main').toggle(todos.length > 0);
@@ -91,6 +134,10 @@ jQuery(function($) {
       $('.new-todo').focus();
       util.store('todos-jquery', this.todos);
     },
+ */
+
+
+
     renderFooter: function() {
       var todoCount = this.todos.length;
       var activeTodoCount = this.getActiveTodos().length;
@@ -101,13 +148,25 @@ jQuery(function($) {
         filter: this.filter
       });
 
-      $('.footer')
+      var footer = document.querySelector(".footer")
+      if(todoCount >0){
+        footer.style.display = "block"
+      }else{
+        footer.style.display= "none"
+      }
+      footer.innerHTML = template
+    },
+     /** $('.footer')
         .toggle(todoCount > 0)
         .html(template);
-    },
-    toggleAll: function(e) {
-      var isChecked = $(e.target).prop('checked');
+  */
 
+ 
+ toggleAll: function(e) {
+  var isChecked = e.target.checked
+     * /** 
+      var isChecked = $(e.target).prop('checked');
+*/
       this.todos.forEach(function(todo) {
         todo.completed = isChecked;
       });
@@ -142,9 +201,13 @@ jQuery(function($) {
     // accepts an element from inside the `.item` div and
     // returns the corresponding index in the `todos` array
     getIndexFromEl: function(el) {
-      var id = $(el)
+     var id = el.closest("li")
+     id = id.getAttribute("data-id")
+     
+      /**  var id = $(el)
         .closest('li')
         .data('id');
+        */
       var todos = this.todos;
       var i = todos.length;
 
@@ -155,9 +218,11 @@ jQuery(function($) {
       }
     },
     create: function(e) {
-      var $input = $(e.target);
+var input = e.target;
+var val = input.value.trim();
+      /**       var $input = $(e.target);
       var val = $input.val().trim();
-
+*/
       if (e.which !== ENTER_KEY || !val) {
         return;
       }
@@ -167,9 +232,9 @@ jQuery(function($) {
         title: val,
         completed: false
       });
-
-      $input.val('');
-
+      input.value=""
+ /**$input.val('');
+*/
       this.render();
     },
     toggle: function(e) {
@@ -178,15 +243,25 @@ jQuery(function($) {
       this.render();
     },
     editingMode: function(e) {
-      var $input = $(e.target)
+      var input = e.target
+      input.closest("li")
+      .classList.add("editing")
+      e.target.querySelector("li, edit")
+      /**var $input = $(e.target)
         .closest('li')
         .addClass('editing')
         .find('.edit');
+        */
       // puts caret at end of input
-      var tmpStr = $input.val();
+      var tmpStr = input.value;
+      input.value = ""
+      input.value = tmpStr;
+      input.focus();
+      /**var tmpStr = $input.val();
       $input.val('');
       $input.val(tmpStr);
       $input.focus();
+      */
     },
     editKeyup: function(e) {
       if (e.which === ENTER_KEY) {
@@ -194,18 +269,24 @@ jQuery(function($) {
       }
 
       if (e.which === ESCAPE_KEY) {
-        $(e.target)
+        e.target.setAttribute("abort", true)
+        e.target.blur();
+       /** $(e.target)
           .data('abort', true)
           .blur();
+          */
       }
     },
     update: function(e) {
       var el = e.target;
-      var $el = $(el);
-      var val = $el.val().trim();
-
-      if ($el.data('abort')) {
-        $el.data('abort', false);
+      var sel = el;
+/**       var $el = $(el); */
+      var val = el.value.trim(); 
+ /**      var val = $el.val().trim();*/
+ if (el.getAttribute("abort")) {
+   el.setAttribute("abort",false);
+      /**if ($el.data('abort')) {
+        $el.data('abort', false);*/
       } else if (!val) {
         this.destroy(e);
         return;
